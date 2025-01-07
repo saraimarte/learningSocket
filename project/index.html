@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<script src = "/socket.io/socket.io.js"></script>
+<body>
+  
+  <form action = "">
+    <label>username: </label>
+    <input id = "username"/>
+
+    <label>message: </label>
+    <input id = "m"/>
+    <button>Send</button>
+  </form>
+
+  <ul id = "messages"></ul>
+</body>
+
+<style>
+  li{
+    list-style: none;
+  }
+</style>
+
+<script>
+
+   //let username = prompt("Enter Username: ");
+   
+   // Initialize socket connection
+    const socket = io();
+    const form = document.querySelector('form');
+    const messagesContainer  = document.getElementById('messages');
+
+    // Everytime you click send on the form...
+    form.addEventListener('submit', function(e){
+        //Prevent Page Refreshing
+        e.preventDefault();
+        const message = document.getElementById('m');
+        const username = document.getElementById('username');
+
+        socket.emit('new user', username.value);
+
+        socket.emit('chat message', {
+          username: username.value,
+          message: message.value
+        });
+
+        //Clear the input box
+        message.value = '';
+    })
+
+    socket.on('chat message', function(data) {
+        const li = document.createElement('li');
+        li.style.color = data.color;
+        li.textContent = `${data.username}: ${data.message}`;
+        messagesContainer.appendChild(li);
+    });
+
+    socket.on('system message', function(data) {
+        const li = document.createElement('li');
+        li.style.color = '#888888';
+        li.textContent = data.message;
+        messagesContainer.appendChild(li);
+    });
+  
+  
+</script>
+
+</html>
