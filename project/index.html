@@ -1,74 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
 </head>
+
 <script src = "/socket.io/socket.io.js"></script>
+
 <body>
-  
-  <form action = "">
-    <label>username: </label>
-    <input id = "username"/>
+   
+    <form id = "form" action = "">
+        <label>Username:</label>
+        <input id = "user"/>
 
-    <label>message: </label>
-    <input id = "m"/>
-    <button>Send</button>
-  </form>
+        <label>Message: </label>
+        <input id = "message"/>
+        <button>Send</button>
+    </form>
 
-  <ul id = "messages"></ul>
+    <p> Messages </p> 
+    <ul id = "mContainer"></ul>
+    
 </body>
 
-<style>
-  li{
-    list-style: none;
-  }
-</style>
-
 <script>
-
-   //let username = prompt("Enter Username: ");
-   
-   // Initialize socket connection
     const socket = io();
-    const form = document.querySelector('form');
-    const messagesContainer  = document.getElementById('messages');
+    const form = document.getElementById('form');
+    const mContainer = document.querySelector("#mContainer");
 
-    // Everytime you click send on the form...
     form.addEventListener('submit', function(e){
-        //Prevent Page Refreshing
         e.preventDefault();
-        const message = document.getElementById('m');
-        const username = document.getElementById('username');
 
-        socket.emit('new user', username.value);
+        const input2 = document.getElementById('user');
+        const username = input2.value;
 
-        socket.emit('chat message', {
-          username: username.value,
-          message: message.value
+        const input = document.getElementById('message');
+        const message = input.value;
+
+        console.log(message);
+        socket.emit('new message', {
+            u: username,
+            m: message
         });
-
-        //Clear the input box
-        message.value = '';
+        input.value = '';
     })
 
-    socket.on('chat message', function(data) {
-        const li = document.createElement('li');
-        li.style.color = data.color;
-        li.textContent = `${data.username}: ${data.message}`;
-        messagesContainer.appendChild(li);
-    });
+    socket.on('new message', function(data){
+       
+       const newLi = document.createElement("li");
+       const spanEl = document.createElement("span");
 
-    socket.on('system message', function(data) {
-        const li = document.createElement('li');
-        li.style.color = '#888888';
-        li.textContent = data.message;
-        messagesContainer.appendChild(li);
-    });
-  
-  
+       spanEl.textContent = data.un + ":";
+       spanEl.style.color = data.color;
+
+       newLi.textContent = data.msg;
+ 
+       mContainer.appendChild(spanEl);
+
+       spanEl.appendChild(newLi);
+           
+   })
+       
+  socket.on('system message', function(data){
+       const newLi = document.createElement("li");
+       const spanEl = document.createElement("span");
+
+       spanEl.textContent = data.username + ":";
+       spanEl.style.color = data.color;
+
+       newLi.textContent = data.message;
+       newLi.style.color = '#888888';
+
+       mContainer.appendChild(spanEl);
+
+       spanEl.appendChild(newLi);
+  })
+
 </script>
-
 </html>
+
+<style>
+    body{
+        background-color: black;
+        color:gray;
+    }
+
+    span{
+        display:grid;
+        grid-template-columns: 10% 90%;
+        grid-gap:2em;
+        font-weight:bold;
+    }
+    input, input:focus, input:active, button{
+        background-color: gray;
+    }
+
+    li{
+        list-style: none;
+        color:white;
+        font-weight: 100;
+        width: 90%
+
+    }
+</style>

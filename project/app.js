@@ -9,72 +9,70 @@ const http = require('http').Server(app);
 
 const io = require('socket.io')(http);
 
-//Store users and their colors 
+//Route 
+app.get('/', function(req, res){
+    res.sendFile(__dirname + '/index.html');
+})
 
 const users = new Map();
 
-//Function that generates random colors.
-function getRandomColor(){
+const getRandomColor = function(){
     const colors = [
-        '#2196F3', // Blue
-        '#4CAF50', // Green
-        '#E91E63', // Pink
-        '#FF9800', // Orange
-        '#9C27B0', // Purple
-        '#00BCD4', // Cyan
-        '#795548', // Brown
-        '#673AB7'  // Deep Purple
+        '#FADADD', // Baby Pink
+        '#B0E0E6', // Powder Blue
+        '#E6E6FA', // Lavender
+        '#98FF98', // Mint Green
+        '#FFDAB9', // Peach
+        '#87CEEB', // Sky Blue
+        '#FFFACD', // Lemon Chiffon
+        '#F88379', // Coral Pink
+        '#C8A2C8', // Lilac
+        '#CCCCFF', // Periwinkle
+        '#9FE2BF', // Seafoam Green
+        '#FFFFE0', // Soft Yellow
+        '#FFC0CB', // Blush
+        '#D6CADD', // Pale Lavender
+        '#AEC6CF', // Robin's Egg Blue
+        '#FFFDD0', // Cream
+        '#FFB7C5', // Bubblegum Pink
+        '#FFE5B4', // Light Peach
+        '#A7C7E7', // Soft Teal
+        '#FFD1B3'  // Pastel Orange
     ];
-    return colors[Math.floor(Math.random() * colors.length)]
+    
+    return (colors[Math.floor(Math.random() * colors.length)]);
+    
 }
 
-// Create route 
+io.on('connection', function(socket){
+    console.log("New User Connected");
+    socket.on('new message', function(data){
+        console.log(`Username: ${data.u}\nMessage: ${data.m}`);
 
-app.get('/', function(req, res){
-    res.sendFile(__dirname + '/index.html');
-});
 
-//On connection...
-io.on("connection", function(socket){
-    console.log('A user connected');
 
-    //listen for a new user 
-    //when there is a new user, then run the following function
-    socket.on('new user', function(username){
 
-        if(!users.has(socket.id)){
-            const userInfo = {
-                username: username,
-                color: getRandomColor()
-            };
+        //if user doesn't exist {}
+        if(!users.has(socket.id)) {
+            //assign the user a color 
+           users.set(socket.id, getRandomColor());
 
-        users.set(socket.id, getRandomColor());
+           io.emit('system message', {
+            username : 'system',
+            message : `${data.u} has joined the chat`,
+            color: '#888888',
+           })
+        } 
 
-        io.emit('system message', {
-            message: `${username} has joined the chat`,
-        });
-        }
-    //.set() adds a new element to Map() with key and value.
-    console.log(`Username: ${username} , UserID: ${socket.id}`); 
-});
-
-    socket.on('chat message', function(data){
-        const userColor = users.get(socket.id);  // Get the user's color
-        if (userColor) {
-            io.emit('chat message', {
-                username: data.username,
-                message: data.message,
-                color: userColor
-            });
-        }
+        io.emit('new message', {
+            un: data.u,
+            msg: data.m, 
+            color: users.get(socket.id),
+        })
     })
-
-});
-
-//Tell server to listen to port 3000
+    
+})
 
 http.listen(3000, function(){
     console.log("Connected");
 })
-
-
