@@ -15,6 +15,7 @@ app.get('/', function(req, res){
 })
 
 const users = new Map();
+const usersRooms = new Map();
 
 const getRandomColor = function(){
     const colors = [
@@ -47,24 +48,45 @@ const getRandomColor = function(){
 io.on('connection', function(socket){
     console.log("New User Connected");
     socket.on('new message', function(data){
+
         console.log(`Username: ${data.u}\nMessage: ${data.m}`);
 
+        //users can switch rooms every time they send a message 
 
+        //if a user is already in a room...
+        if(usersRooms.has(socket.id)){
 
+            let oldRoom = usersRooms.get(socket.id);
+        
+            //leave the room
+            socket.leave(usersRooms.get(socket.id));
+
+            if(oldRoom !== data.r){
+                socket.emit('switch rooms');
+            }
+
+        }
+
+        socket.join(data.r);
+        usersRooms.set(socket.id, data.r);
 
         //if user doesn't exist {}
         if(!users.has(socket.id)) {
             //assign the user a color 
            users.set(socket.id, getRandomColor());
 
-           io.emit('system message', {
-            username : 'system',
-            message : `${data.u} has joined the chat`,
-            color: '#888888',
+             //if a user joins a room then I only want the system message to show up in the room the user joined not all
+
+            io.to(data.r).emit('system message', {
+                username : 'system',
+                message : `${data.u} has joined the chat`,
+                color: '#888888',
            })
+           
+          
         } 
 
-        io.emit('new message', {
+        io.to(data.r).emit('new message', {
             un: data.u,
             msg: data.m, 
             color: users.get(socket.id),

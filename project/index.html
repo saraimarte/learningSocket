@@ -11,6 +11,10 @@
 <body>
    
     <form id = "form" action = "">
+
+        <label>Room</label>
+        <input id = "room"/>
+        
         <label>Username:</label>
         <input id = "user"/>
 
@@ -32,18 +36,23 @@
     form.addEventListener('submit', function(e){
         e.preventDefault();
 
-        const input2 = document.getElementById('user');
-        const username = input2.value;
+        const userInput = document.getElementById('user');
+        const username = userInput.value;
 
-        const input = document.getElementById('message');
-        const message = input.value;
+        const messageInput = document.getElementById('message');
+        const message = messageInput.value;
+
+        const roomInput = document.getElementById('room');
+        const room = roomInput.value;
 
         console.log(message);
         socket.emit('new message', {
             u: username,
-            m: message
+            m: message, 
+            r : room,
         });
-        input.value = '';
+
+        messageInput.value = '';
     })
 
     socket.on('new message', function(data){
@@ -76,6 +85,10 @@
 
        spanEl.appendChild(newLi);
   })
+
+    socket.on('switch rooms', function(){
+        mContainer.innerHTML = '';
+    });
 
 </script>
 </html>
