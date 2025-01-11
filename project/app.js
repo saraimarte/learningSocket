@@ -1,23 +1,8 @@
-//Create express application
 const app = require('express')();
-
-// Create http server 
-
 const http = require('http').Server(app);
-
-// Create instance of socket
-
 const io = require('socket.io')(http);
-
-//Route 
-app.get('/', function(req, res){
-    res.sendFile(__dirname + '/index.html');
-})
-
-const users = new Map();
-const usersRooms = new Map();
-
 const getRandomColor = function(){
+    
     const colors = [
         '#FADADD', // Baby Pink
         '#B0E0E6', // Powder Blue
@@ -39,62 +24,65 @@ const getRandomColor = function(){
         '#FFE5B4', // Light Peach
         '#A7C7E7', // Soft Teal
         '#FFD1B3'  // Pastel Orange
-    ];
-    
-    return (colors[Math.floor(Math.random() * colors.length)]);
-    
+    ]
+    return (colors[Math.floor(Math.random() * colors.length)]); 
 }
+const users = new Map(); // {socket.id(user) : color}
+ 
+const rooms = new Map(); // {socket.id(user) : room}
+
+
+app.get('/', function(req, res){
+    res.sendFile(__dirname + '/index.html');
+})
 
 io.on('connection', function(socket){
     console.log("New User Connected");
+
     socket.on('new message', function(data){
 
-        console.log(`Username: ${data.u}\nMessage: ${data.m}`);
 
-        //users can switch rooms every time they send a message 
+        //if the user has not been in a room then...
+        if(!rooms.has(socket.id)){
+            //add the user to that room
+            rooms.set(socket.id, data.r);     
+            socket.join(data.r);            
 
-        //if a user is already in a room...
-        if(usersRooms.has(socket.id)){
+        }else {
+            //get the oldroom
+            let oldRoom = rooms.get(socket.id);
 
-            let oldRoom = usersRooms.get(socket.id);
-        
-            //leave the room
-            socket.leave(usersRooms.get(socket.id));
-
-            if(oldRoom !== data.r){
+            //if the current room data.r is not the same as the oldRoom that means
+            //the user changed rooms, so you have to leave oldRoom and join the new room
+            if(data.r !== oldRoom){
+                socket.leave(oldRoom);
+                socket.join(data.r);            
                 socket.emit('switch rooms');
-            }
 
+            }
         }
 
-        socket.join(data.r);
-        usersRooms.set(socket.id, data.r);
-
-        //if user doesn't exist {}
-        if(!users.has(socket.id)) {
-            //assign the user a color 
-           users.set(socket.id, getRandomColor());
-
-             //if a user joins a room then I only want the system message to show up in the room the user joined not all
-
-            io.to(data.r).emit('system message', {
-                username : 'system',
-                message : `${data.u} has joined the chat`,
-                color: '#888888',
-           })
-           
-          
-        } 
-
-        io.to(data.r).emit('new message', {
-            un: data.u,
-            msg: data.m, 
-            color: users.get(socket.id),
-        })
-    })
     
+        console.log(`ROOM: ${data.r}`);
+
+        if(!users.get(socket.id)){ //if this user does not exist yet 
+            //then add them 
+            users.set(socket.id, getRandomColor());
+        }
+
+        io.to(data.r).emit('send message', {
+            un : data.u,
+            msg : data.m , 
+            color : users.get(socket.id),
+        });
+    })
+
 })
 
-http.listen(3000, function(){
+
+http.listen('3000', function(){
     console.log("Connected");
 })
+
+
+

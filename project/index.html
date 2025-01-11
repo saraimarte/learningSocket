@@ -3,95 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
+    <title>ChatApp</title>
 </head>
 
 <script src = "/socket.io/socket.io.js"></script>
 
 <body>
-   
-    <form id = "form" action = "">
-
-        <label>Room</label>
-        <input id = "room"/>
-        
+   <form>
         <label>Username:</label>
-        <input id = "user"/>
+        <input id = "username" />
+        
+        <label>Room:</label>
+        <input id = "room" />
+        
+        <label>Message:</label>
+        <input id = "message" />
 
-        <label>Message: </label>
-        <input id = "message"/>
         <button>Send</button>
     </form>
+        <h1>Messages</h1>
+        <ul id = "messagesContainer"></ul>
 
-    <p> Messages </p> 
-    <ul id = "mContainer"></ul>
-    
+
+  
+
 </body>
 
-<script>
-    const socket = io();
-    const form = document.getElementById('form');
-    const mContainer = document.querySelector("#mContainer");
 
+<script>
+
+    //Establishes connection between client and server
+    // io() function comes from the socket.io library which is included in our HTML file via the script tag we added above. 
+    const socket = io();
+
+    const form = document.querySelector('form');
+    const messagesContainer = document.querySelector('#messagesContainer');
+
+    //when you click send then....
     form.addEventListener('submit', function(e){
+
         e.preventDefault();
 
-        const userInput = document.getElementById('user');
-        const username = userInput.value;
-
-        const messageInput = document.getElementById('message');
+        const messageInput = document.querySelector('#message');
         const message = messageInput.value;
 
-        const roomInput = document.getElementById('room');
-        const room = roomInput.value;
+        const userInput = document.querySelector('#username');
+        const username = userInput.value;
 
-        console.log(message);
+        const roomInput = document.querySelector('#room');
+        const room = roomInput.value;
+        
         socket.emit('new message', {
-            u: username,
-            m: message, 
+            u : username , 
+            m : message,
             r : room,
         });
 
         messageInput.value = '';
     })
 
-    socket.on('new message', function(data){
-       
-       const newLi = document.createElement("li");
-       const spanEl = document.createElement("span");
+    socket.on('send message', function(data){
+        
+        const newLi = document.createElement('li');
+        const newSpan = document.createElement('span');
+        const wrapper = document.createElement('div');
 
-       spanEl.textContent = data.un + ":";
-       spanEl.style.color = data.color;
 
-       newLi.textContent = data.msg;
- 
-       mContainer.appendChild(spanEl);
+        newSpan.textContent = data.un  + ": ";
+        newSpan.style.color = data.color;
+        newLi.textContent = data.msg;
 
-       spanEl.appendChild(newLi);
-           
-   })
-       
-  socket.on('system message', function(data){
-       const newLi = document.createElement("li");
-       const spanEl = document.createElement("span");
+        wrapper.appendChild(newSpan);
+        newSpan.appendChild(newLi);
+        messagesContainer.appendChild(wrapper);
+        
+    })
 
-       spanEl.textContent = data.username + ":";
-       spanEl.style.color = data.color;
+    /*socket.on('send message', function(data){
+        
+    const newLi = document.createElement('li');
+    const newSpan = document.createElement('span');
 
-       newLi.textContent = data.message;
-       newLi.style.color = '#888888';
+    newSpan.textContent = data.un  + ": ";
+    newSpan.style.color = data.color;
 
-       mContainer.appendChild(spanEl);
+    newLi.textContent = data.msg;
 
-       spanEl.appendChild(newLi);
-  })
+    messagesContainer.appendChild(newSpan);
 
-    socket.on('switch rooms', function(){
-        mContainer.innerHTML = '';
-    });
+    newSpan.after(newLi);
+
+    
+})  SECOND SOLUTION*/
+
+
+socket.on('switch rooms', function(){
+    messagesContainer.textContent = '';
+})
 
 </script>
+
 </html>
+
 
 <style>
     body{
@@ -100,20 +113,28 @@
     }
 
     span{
-        display:grid;
-        grid-template-columns: 10% 90%;
-        grid-gap:2em;
-        font-weight:bold;
+        font-weight: bold;
     }
-    input, input:focus, input:active, button{
+
+    input:active, input, button{
         background-color: gray;
+        color:white;
+    }
+    button{
+        color:white;
     }
 
     li{
-        list-style: none;
-        color:white;
-        font-weight: 100;
-        width: 90%
+        list-style:none;
+        display:inline;
+        color: gray;
+    }
 
+    #messagesContainer{
+        /*display: grid;
+        grid-template-columns: 10% 90%;*/
+
+        /*SECOND SOL*/
+        
     }
 </style>
