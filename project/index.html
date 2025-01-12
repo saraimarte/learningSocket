@@ -29,7 +29,6 @@
 
 </body>
 
-
 <script>
 
     //Establishes connection between client and server
@@ -38,6 +37,56 @@
 
     const form = document.querySelector('form');
     const messagesContainer = document.querySelector('#messagesContainer');
+
+    socket.on('switch rooms', function(mh, newRoom, mapOfColors){
+        messagesContainer.textContent = '';
+        console.log(mapOfColors);
+
+        const users = new Map(mapOfColors); // Convert the array back to a Map
+        console.log(users);
+
+        /*
+        console.log(mh);
+        console.log(mh.mh);
+        console.log(mh.mh[0]);
+        console.log(mh.newRoom);
+
+        console.log(mh.mh[0]);
+        
+        */
+
+
+        for(let i = 0; i < mh.mh.length -1 ; i++){
+            const messageObject = mh.mh[i];
+
+            for(const user in messageObject){
+                if(messageObject.hasOwnProperty(user)){
+                    const message = messageObject[user];
+                    console.log("Username", user);
+                    console.log("Message: ", message);
+
+ 
+                    const newLi = document.createElement('li');
+                    const newSpan = document.createElement('span');
+                    const wrapper = document.createElement('div');
+
+                    console.log("STUFF WORKING: ");
+
+                    newSpan.textContent = user + ": ";
+                    newSpan.style.color = 'gray';
+                    newLi.textContent = message;
+
+                    wrapper.appendChild(newSpan);
+                    newSpan.appendChild(newLi);
+                    messagesContainer.appendChild(wrapper);
+
+                }
+            }
+
+        }
+              
+    })
+
 
     //when you click send then....
     form.addEventListener('submit', function(e){
@@ -96,10 +145,6 @@
     
 })  SECOND SOLUTION*/
 
-
-socket.on('switch rooms', function(){
-    messagesContainer.textContent = '';
-})
 
 </script>
 

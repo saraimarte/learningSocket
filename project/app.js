@@ -31,6 +31,7 @@ const users = new Map(); // {socket.id(user) : color}
  
 const rooms = new Map(); // {socket.id(user) : room}
 
+const messageHistory = new Map(); // list of [{room : [{user : messages}, ... ]}]
 
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
@@ -40,40 +41,84 @@ io.on('connection', function(socket){
     console.log("New User Connected");
 
     socket.on('new message', function(data){
+      
+        // A USER SENT A NEW MESSAGE TO A ROOM
 
+        //if the room doesnt exist yet then...
+        if(!messageHistory.has(data.r)){
+            //add it and create an array to hold the messages from each user in a room
+            messageHistory.set(data.r, []);
+        }
+
+        //otherwise, the room already exists - people have already chatted in it - it has messages
+        const roomMessages = messageHistory.get(data.r);
+
+        //add a row with the user and the new message to roomMessages
+        roomMessages.push({[data.u] : data.m});
+
+        messageHistory.set(data.r, roomMessages);
+
+        //console.log('MESSAGE HISTORY');
+       // console.log(messageHistory);
 
         //if the user has not been in a room then...
-        if(!rooms.has(socket.id)){
+        if(!rooms.has(data.u)){
             //add the user to that room
-            rooms.set(socket.id, data.r);     
+            rooms.set(data.u, data.r);     
             socket.join(data.r);            
 
-        }else {
+
+            const usersArray = Array.from(users.entries()); // Converts Map to an array of key-value pairs
+
+
+            socket.emit('switch rooms', {
+                mh: messageHistory.get(data.r),
+                newRoom : data.r,
+                mapOfColors : usersArray,
+
+
+                /*I cant just do mapOfColors : users, because: The issue seems to be in how you're passing mapOfColors (which is users on the server) to the client. Specifically, when emitting switch rooms, you're passing users (a Map object) directly, but socket.emit() serializes data into JSON. Since JSON does not support Map objects, the client receives undefined.*/
+              
+          
+            });
+
+        }else { //if the user is in a room...
             //get the oldroom
-            let oldRoom = rooms.get(socket.id);
+            const oldRoom = rooms.get(data.u);
 
             //if the current room data.r is not the same as the oldRoom that means
             //the user changed rooms, so you have to leave oldRoom and join the new room
             if(data.r !== oldRoom){
                 socket.leave(oldRoom);
-                socket.join(data.r);            
-                socket.emit('switch rooms');
+                socket.join(data.r);    
+                
+                //console.log(messageHistory.get(data.r));
+
+                const usersArray = Array.from(users.entries()); // Converts Map to an array of key-value pairs
+
+
+                socket.emit('switch rooms', {
+                    mh: messageHistory.get(data.r),
+                    newRoom : data.r,
+                    mapOfColors : usersArray,
+
+                });
+
+                console.log(Object.fromEntries(users));
 
             }
         }
 
-    
-        console.log(`ROOM: ${data.r}`);
 
-        if(!users.get(socket.id)){ //if this user does not exist yet 
+        if(!users.get(data.u)){ //if this user does not exist yet 
             //then add them 
-            users.set(socket.id, getRandomColor());
+            users.set(data.u, getRandomColor());
         }
 
         io.to(data.r).emit('send message', {
             un : data.u,
             msg : data.m , 
-            color : users.get(socket.id),
+            color : users.get(data.u),
         });
     })
 
