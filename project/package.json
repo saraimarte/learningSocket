@@ -2,8 +2,16 @@
     "name": "socket project",
     "version": "0.0.1",
     "description": "first socket project",
+    "scripts" :{
+        "start" : "node app",
+        "dev" : "nodemon app"
+    },
     "dependencies": {
         "express": "^4.21.2",
         "socket.io": "^4.8.1"
-    }
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.9"
+      }
+
 }

@@ -3,183 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatApp</title>
+    <title>Lobby</title>
 </head>
-
-<script src = "/socket.io/socket.io.js"></script>
-
 <body>
-   <form>
-        <label>Username:</label>
-        <input id = "username" />
+    <form action = "/chat.html">
+        <input 
         
-        <label>Room:</label>
-        <input id = "room" />
+        type = "text"
+        name = "username"
+        id = "usernameInput" 
+        placeholder="Enter Username..."
+        required
         
-        <label>Message:</label>
-        <input id = "message" />
+        />
 
-        <button>Send</button>
-    </form>
-        <h1>Messages</h1>
-        <ul id = "messagesContainer"></ul>
-
-
-  
-
-</body>
-
-<script>
-
-    //Establishes connection between client and server
-    // io() function comes from the socket.io library which is included in our HTML file via the script tag we added above. 
-    const socket = io();
-
-    const form = document.querySelector('form');
-    const messagesContainer = document.querySelector('#messagesContainer');
-
-    socket.on('switch rooms', function(mh, newRoom, mapOfColors){
-        messagesContainer.textContent = '';
-        console.log(mapOfColors);
-
-        const users = new Map(mapOfColors); // Convert the array back to a Map
-        console.log(users);
-
-        /*
-        console.log(mh);
-        console.log(mh.mh);
-        console.log(mh.mh[0]);
-        console.log(mh.newRoom);
-
-        console.log(mh.mh[0]);
-        
-        */
-
-
-        for(let i = 0; i < mh.mh.length -1 ; i++){
-            const messageObject = mh.mh[i];
-
-            for(const user in messageObject){
-                if(messageObject.hasOwnProperty(user)){
-                    const message = messageObject[user];
-                    console.log("Username", user);
-                    console.log("Message: ", message);
-
- 
-                    const newLi = document.createElement('li');
-                    const newSpan = document.createElement('span');
-                    const wrapper = document.createElement('div');
-
-                    console.log("STUFF WORKING: ");
-
-                    newSpan.textContent = user + ": ";
-                    newSpan.style.color = 'gray';
-                    newLi.textContent = message;
-
-                    wrapper.appendChild(newSpan);
-                    newSpan.appendChild(newLi);
-                    messagesContainer.appendChild(wrapper);
-
-                }
-            }
-
-        }
+        <input id = "roomInput"
               
-    })
-
-
-    //when you click send then....
-    form.addEventListener('submit', function(e){
-
-        e.preventDefault();
-
-        const messageInput = document.querySelector('#message');
-        const message = messageInput.value;
-
-        const userInput = document.querySelector('#username');
-        const username = userInput.value;
-
-        const roomInput = document.querySelector('#room');
-        const room = roomInput.value;
+        type = "text"
+        name = "room"
+        id = "roomInput" 
+        placeholder="Enter Room..."
+        required
         
-        socket.emit('new message', {
-            u : username , 
-            m : message,
-            r : room,
-        });
+        />
 
-        messageInput.value = '';
-    })
-
-    socket.on('send message', function(data){
-        
-        const newLi = document.createElement('li');
-        const newSpan = document.createElement('span');
-        const wrapper = document.createElement('div');
-
-
-        newSpan.textContent = data.un  + ": ";
-        newSpan.style.color = data.color;
-        newLi.textContent = data.msg;
-
-        wrapper.appendChild(newSpan);
-        newSpan.appendChild(newLi);
-        messagesContainer.appendChild(wrapper);
-        
-    })
-
-    /*socket.on('send message', function(data){
-        
-    const newLi = document.createElement('li');
-    const newSpan = document.createElement('span');
-
-    newSpan.textContent = data.un  + ": ";
-    newSpan.style.color = data.color;
-
-    newLi.textContent = data.msg;
-
-    messagesContainer.appendChild(newSpan);
-
-    newSpan.after(newLi);
-
-    
-})  SECOND SOLUTION*/
-
-
-</script>
-
+        <button type = "submit"> Send </button>
+    </form>
+</body>
 </html>
 
-
-<style>
-    body{
-        background-color: black;
-        color:gray;
-    }
-
-    span{
-        font-weight: bold;
-    }
-
-    input:active, input, button{
-        background-color: gray;
-        color:white;
-    }
-    button{
-        color:white;
-    }
-
-    li{
-        list-style:none;
-        display:inline;
-        color: gray;
-    }
-
-    #messagesContainer{
-        /*display: grid;
-        grid-template-columns: 10% 90%;*/
-
-        /*SECOND SOL*/
-        
-    }
-</style>

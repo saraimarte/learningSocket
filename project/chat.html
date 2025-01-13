@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+</head>
+<body>
+
+    <h1 id = "room"> </h1>
+    <ul id = "messageContainer">
+    </ul>
+    <form>
+        <input
+        type = "text"
+        id = "message"
+        name = "message"
+        placeholder = "Write a message..."
+        required
+    />
+    <button>Send</button>
+    </form>
+    
+</body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.13.1/qs.min.js" integrity="sha512-dOI8+lI91wsLJEMBQcZBvatYrawv84SrgkRF/6sIcjhYXgANOvOEkBtCSf/ZkdZ7Mw0u+VUxDgalDZA1qKWTFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src = "/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+
+    const form = document.querySelector('form');
+    const messageContainer = document.getElementById('messageContainer');
+    const roomDisplay = document.getElementById('room');
+
+    const {username, room} = Qs.parse(location.search, {
+            ignoreQueryPrefix:true
+    })
+
+    socket.emit('join room', {username, room});
+    roomDisplay.textContent = `Room: ${room}`;
+
+    form.addEventListener('submit', function(e){
+
+        const message = document.getElementById('message').value;
+
+        e.preventDefault();  
+    
+        socket.emit('new message', message);
+
+    })
+
+    socket.on('new user',  ({username, room}) => {
+
+        const li = document.createElement('li');
+
+        li.innerHTML = `${username} joined the chat.`;   
+        
+        messageContainer.appendChild(li);
+
+    })
+
+
+    socket.on('displayMessage', (message, user) => {
+
+        console.log(user.color);
+        
+        const li = document.createElement('li');
+
+        li.innerHTML = message;    
+
+        messageContainer.appendChild(li);
+    })
+    
+/*
+    socket.on('disconnection', (id) => {
+        const li = document.createElement('li');
+
+        li.innerHTML = `${id} disconnected.`;    
+
+        messageContainer.appendChild(li);
+    })
+
+    */
+</script>
+
+<style>
+    li{
+        list-style:none;
+    }
+</style>
+</html>
